@@ -105,7 +105,7 @@ Measured on this machine (generate + validate one month):
 
 So 2× is instant. Beyond that: replace in-memory/JSON state with Postgres (`employees`, `processes`, `assignments`, `leaves`, `roster_cells`, `covers`), run generation in a background worker (Celery/RQ) so requests never block, generate **per pod** in parallel (pods are nearly independent), and swap the greedy step for an **OR-Tools CP-SAT** model for the hard-constrained core while keeping the validator unchanged as the arbiter.
 
-### 8. What would you do with one more week?
+### 8. What would i do with one more week?
 1. Postgres + auth with roles (manager / pod lead), approval workflow for leave and roster publish.
 2. CP-SAT optimiser with weekly-off *fairness* (weekend offs, holiday duty) across months, using last month's tail to avoid boundary effects.
 3. Automatic comp-off scheduling and leave balances.

@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: smart-roster
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    # one worker: per-visitor state is held in memory (and mirrored to .state/*.json)
+    startCommand: gunicorn app:app --workers 1 --threads 4 --bind 0.0.0.0:$PORT
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: SECRET_KEY
+        generateValue: true

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Roster</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f5bea'/%3E%3Cpath d='M8 11h16M8 16h16M8 21h10' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="hdr">
+  <div class="logo"><i></i>Smart Roster</div>
+  <form class="row" method="post" action="/generate">
+    <input type="hidden" name="next" value="{{ next_url }}">
+    <label class="muted small" for="month">Month</label>
+    <input type="month" id="month" name="month" value="{{ s.month }}">
+    <button class="btn primary" type="submit">⚙ Generate roster</button>
+  </form>
+  <form method="post" action="/autorepair"><input type="hidden" name="next" value="{{ next_url }}">
+    <button class="btn" type="submit" {{ '' if s.validation and s.validation.summary.errors else 'disabled' }} title="Apply the best suggested fix to every repairable gap">✨ Auto-repair gaps</button></form>
+  <span class="spacer"></span>
+  <a class="btn" href="/export/roster.csv">⬇ Roster CSV</a>
+  <a class="btn" href="/export/issues.csv">⬇ Issues CSV</a>
+  <details class="confirm"><summary class="btn danger">Reset sample data</summary>
+    <div class="pop"><p>Reset all master data and the roster to the sample dataset?</p>
+      <form method="post" action="/reset"><input type="hidden" name="next" value="/roster"><button class="btn danger sm" type="submit">Yes, reset</button></form></div></details>
+</header>
+<main>
+  {% if s.validation %}{% set sm = s.validation.summary %}
+  {% if s.report %}<div class="banner {{ 'ok' if s.report.ok else 'bad' }}"><b>{{ '✓ Roster generated.' if s.report.ok else '⚠ Roster generated, but not everything could be satisfied.' }}</b><ul>{% for l in s.report.lines %}<li>{{ l }}</li>{% endfor %}</ul></div>{% endif %}
+  <div class="kpis">
+    <div class="kpi {{ 'good' if sm.coverage_pct >= 100 else 'bad' }}"><b>{{ sm.coverage_pct }}%</b><span>Mandatory coverage ({{ sm.satisfied_slots }}/{{ sm.required_slots }} slots)</span></div>
+    <div class="kpi {{ 'bad' if sm.errors else 'good' }}"><b>{{ sm.errors }}</b><span>Blocking issues</span></div>
+    <div class="kpi {{ 'warn' if sm.warnings else 'good' }}"><b>{{ sm.warnings }}</b><span>Warnings (soft rules)</span></div>
+    <div class="kpi"><b>{{ sm.covers }}</b><span>Cross-cover shifts</span></div>
+    <div class="kpi"><b>{{ s.data.employees|length }}</b><span>Employees · {{ s.data.pods|length }} pods</span></div>
+    <div class="kpi"><b>{{ s.data.brands|length }}</b><span>Brands · {{ s.data.processes|length }} processes</span></div>
+  </div>
+  {% else %}<div class="banner warn"><b>No roster yet.</b> Pick a month and press <b>Generate roster</b>.</div>{% endif %}
+  {% if s.stale_note %}<div class="banner warn">{{ s.stale_note }}</div>{% endif %}
+  <nav class="tabs">
+    {% for key, name in TABS %}<a class="tab {{ 'on' if tab == key }}" href="/{{ key }}">{{ name }}{% if key == 'issues' and s.validation %}{% if s.validation.summary.errors %}<span class="badge">{{ s.validation.summary.errors }}</span>{% endif %}{% if s.validation.summary.warnings %}<span class="badge warn">{{ s.validation.summary.warnings }}</span>{% endif %}{% endif %}</a>{% endfor %}
+  </nav>
+  {% block content %}{% endblock %}
+</main>
+{% if toast %}<div id="toast" class="srv" role="status">{{ toast }}</div>{% endif %}
+</body>
+</html>

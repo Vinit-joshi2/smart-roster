@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% import "_issue.html" as ui %}
+{% block content %}
+<form class="row filters" method="get" action="/issues" style="margin-bottom:10px">
+  <input type="hidden" name="go" value="1">
+  {% for k, l in [('error','Mandatory (coverage)'),('warning','Soft warnings'),('info','Info / preferences / cross-cover')] %}<label class="small"><input type="checkbox" name="sev" value="{{ k }}" {{ 'checked' if k in sev }}> {{ l }} ({{ counts[k] }})</label>{% endfor %}
+  <input type="text" name="q" placeholder="Search issues…" value="{{ q }}" style="min-width:220px">
+  <button class="btn sm" type="submit">Apply filters</button>
+</form>
+<div class="issues">
+  {% for i in items %}{{ ui.card(i, next_url, here) }}{% else %}<div class="banner ok">Nothing to show with these filters.</div>{% endfor %}
+  {% if total > 150 %}<div class="muted">Showing 150 of {{ total }}. Narrow the filter.</div>{% endif %}
+</div>
+{% endblock %}

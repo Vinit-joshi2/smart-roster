@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="seg" style="margin-bottom:12px">{% for k, X in ENTITIES.items() %}<a class="{{ 'on' if entity == k }}" href="/setup?entity={{ k }}">{{ X.title }}</a>{% endfor %}</div>
+<div class="row" style="justify-content:space-between;margin-bottom:8px"><h2 style="margin:0">{{ E.title }} <span class="muted small">({{ rows|length }})</span></h2><a class="btn primary" href="/setup?entity={{ entity }}&edit=new">+ Add {{ E.singular }}</a></div>
+<div class="card" style="padding:0;overflow:auto;max-height:64vh"><table class="tbl"><thead><tr>{% for c in E.cols %}<th>{{ c[0] }}</th>{% endfor %}<th></th></tr></thead><tbody>
+{% for r in rows %}<tr>{% for c in r.cells %}<td>{{ c }}</td>{% endfor %}
+  <td style="white-space:nowrap;text-align:right"><a class="btn sm" href="/setup?entity={{ entity }}&edit={{ r.id }}">Edit</a>
+    <details class="confirm"><summary class="btn sm danger">Delete</summary><div class="pop"><p>Delete this {{ E.singular }}? Related assignments/leaves are removed too.</p>
+      <form method="post" action="/row/delete"><input type="hidden" name="next" value="/setup?entity={{ entity }}"><input type="hidden" name="entity" value="{{ entity }}"><input type="hidden" name="id" value="{{ r.id }}"><button class="btn sm danger" type="submit">Yes, delete</button></form></div></details></td></tr>{% endfor %}
+</tbody></table></div>
+{% if form %}
+<div class="overlay"><a class="backdrop" href="/setup?entity={{ entity }}" aria-label="Close"></a>
+<form class="modal" method="post" action="/row/save"><input type="hidden" name="next" value="/setup?entity={{ entity }}&edit={{ form.id or 'new' }}"><input type="hidden" name="entity" value="{{ form.entity }}"><input type="hidden" name="id" value="{{ form.id }}">
+  <h3>{{ form.title }}</h3>
+  {% for f in form.fields %}<div class="field"><label>{{ f.label }}{{ ' *' if f.req }}</label>
+    {% if f.type == 'select' %}<select name="{{ f.k }}">{% for v, l in f.options %}<option value="{{ v }}" {{ 'selected' if f.value|string == v|string }}>{{ l }}</option>{% endfor %}</select>
+    {% elif f.type == 'days' %}<div class="days">{% for n in DOW_NAMES %}<label><input type="checkbox" name="{{ f.k }}" value="{{ loop.index0 }}" {{ 'checked' if f.value and loop.index0 in f.value }}>{{ n }}</label>{% endfor %}</div>
+    {% elif f.type == 'special' %}<textarea name="{{ f.k }}" placeholder="2026-11-27 | 2 | Black Friday">{{ f.value }}</textarea>
+    {% else %}<input type="{{ f.type }}" name="{{ f.k }}" value="{{ f.value }}" {{ 'min=0' if f.type == 'number' }}>{% endif %}
+    {% if f.help %}<div class="help">{{ f.help }}</div>{% endif %}</div>{% endfor %}
+  <div class="row" style="justify-content:flex-end"><a class="btn" href="/setup?entity={{ entity }}">Cancel</a><button class="btn primary" type="submit">Save</button></div>
+</form></div>
+{% endif %}
+{% endblock %}

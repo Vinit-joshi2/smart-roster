@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% import "_issue.html" as ui %}
+{% block content %}
+<div class="layout">
+  <div class="card">
+    <h3>Record a leave / comp-off after the roster exists</h3>
+    <p class="muted small" style="margin-top:0">The roster is updated, re-validated instantly, and any coverage gap is explained with ranked suggestions for who can cover.</p>
+    <form class="row" method="post" action="/leave/add" style="align-items:end">
+      <input type="hidden" name="next" value="/changes">
+      <div class="field"><label>Employee</label><select name="employee_id">{% for e in s.data.employees %}<option value="{{ e.id }}">{{ e.name }} ({{ s.data.pods|selectattr('id','equalto',e.pod_id)|map(attribute='name')|first }})</option>{% endfor %}</select></div>
+      <div class="field"><label>From</label><input type="date" name="from" value="{{ default_day }}"></div>
+      <div class="field"><label>To</label><input type="date" name="to" value="{{ default_day }}"></div>
+      <div class="field"><label>Type</label><select name="type"><option value="leave">Leave</option><option value="compoff">Comp-off</option></select></div>
+      <div class="field"><label>Note</label><input type="text" name="note" placeholder="optional"></div>
+      <div class="field"><button class="btn primary" type="submit">Apply to roster</button></div>
+    </form>
+    <form class="row" method="post" action="/leave/demo"><input type="hidden" name="next" value="/changes">
+      <button class="btn" type="submit">▶ Demo: solo brand owner takes leave</button><span class="muted small">picks a single-owner brand, adds 1 day of leave, shows the gap and fixes</span></form>
+    {% if lc %}
+      <h3 style="margin-top:16px">{{ lc.title }}: {% if not lc.ids %}no coverage impact{% elif remaining %}{{ remaining|length }} of {{ lc.ids|length }} coverage problem(s) still open{% else %}all {{ lc.ids|length }} coverage problem(s) resolved{% endif %}</h3>
+      {% if remaining %}<div class="issues">{% for i in remaining %}{{ ui.card(i, next_url, here) }}{% endfor %}</div>
+      {% else %}<div class="banner ok">✓ {{ 'Every gap caused by this change has been covered.' if lc.ids else 'No new coverage problems – the team absorbs this absence.' }}</div>{% endif %}
+    {% endif %}
+  </div>
+  <aside class="card"><h3>Recorded leaves &amp; comp-offs ({{ leaves|length }})</h3>
+    <div style="max-height:62vh;overflow:auto"><table class="tbl"><thead><tr><th>Employee</th><th>Date</th><th>Type</th><th></th></tr></thead><tbody>
+    {% for l in leaves %}<tr><td>{{ emp_name(l.employee_id) }}</td><td>{{ l.date }}</td><td>{{ 'Comp-off' if l.type == 'compoff' else 'Leave' }}</td><td><form method="post" action="/leave/delete"><input type="hidden" name="next" value="/changes"><input type="hidden" name="id" value="{{ l.id }}"><button class="btn sm danger" type="submit">Cancel</button></form></td></tr>{% endfor %}
+    </tbody></table></div></aside>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% import "_issue.html" as ui %}
+{% block content %}
+{% if stale %}
+<div class="banner warn">The saved roster is for <b>{{ month_label(s.roster.month) }}</b>. Press <b>Generate roster</b> to build {{ month_label(s.month) }}.</div>
+{% else %}
+<div class="row" style="margin-bottom:10px">
+  <div class="seg">{% for t in ['company','pod','brand','process','employee'] %}<a class="{{ 'on' if vtype == t }}" href="/roster?type={{ t }}">{{ t|capitalize }}</a>{% endfor %}</div>
+  {% if options %}<form class="row" method="get" action="/roster"><input type="hidden" name="type" value="{{ vtype }}">
+    <select name="id" aria-label="Select {{ vtype }}">{% for v, l in options %}<option value="{{ v }}" {{ 'selected' if v == vid }}>{{ l }}</option>{% endfor %}</select>
+    <button class="btn sm" type="submit">Show</button></form>{% endif %}
+  <span class="muted small">Click any cell to edit — validation runs instantly.</span>
+</div>
+<div class="layout">
+  <div>
+  {% if vtype == 'employee' and emp_view %}
+    {% set ev = emp_view %}
+    <div class="card">
+      <h2>{{ ev.emp.name }} <span class="muted small">{{ ev.emp.title }} · {{ ev.pod }}</span></h2>
+      <div class="row small" style="margin-bottom:8px"><span class="tag ok">{{ ev.pe.work }} working days</span><span class="tag">{{ ev.pe.off }} weekly offs</span><span class="tag warning">{{ ev.pe.leave }} leave</span><span class="tag">{{ ev.pe.co }} comp-off</span><span class="tag">{{ ev.pe.holiday_work }} holiday shift(s) → comp-off earned</span><span class="tag">{{ ev.pe.covers }} cover shift(s)</span><span class="tag soft">Prefers off: {% for x in ev.emp.preferred_off_days %}{{ DOW_NAMES[x] }}{{ '/' if not loop.last }}{% else %}no preference{% endfor %}</span></div>
+      <p class="small muted" style="margin:0 0 10px"><b>Primary for:</b> {{ ev.primary|join(' · ') if ev.primary else 'nothing' }}{% if ev.backup_n %} &nbsp;|&nbsp; <b>Backup for</b> {{ ev.backup_n }} process(es){% endif %}</p>
+      <div class="cal">{% for n in DOW_NAMES[1:] + [DOW_NAMES[0]] %}<div class="dh">{{ n }}</div>{% endfor %}
+        {% for _ in range(ev.lead) %}<div class="blank tile"></div>{% endfor %}
+        {% for t in ev.tiles %}<a class="tile st-{{ t.status }} {{ 'err' if t.err }}" id="c-{{ ev.emp.id }}-{{ t.date }}" href="{{ here(menu=ev.emp.id ~ '|' ~ t.date) }}#c-{{ ev.emp.id }}-{{ t.date }}"><b>{{ t.num }}</b> <span class="small">{{ t.dow }}</span>{% if t.holiday %}<span class="small"> · {{ t.holiday }}</span>{% endif %}<span class="lbl">{{ t.label }}</span>{% for x in t.serving %}<div class="small">{{ x }}</div>{% endfor %}</a>{% endfor %}
+      </div>
+    </div>
+  {% elif grid %}
+    <div class="grid-wrap"><table class="grid"><thead><tr><th class="name">{{ month_label(s.roster.month) }}</th>{% for h in grid.days %}<th class="{{ 'sun' if h.sun }} {{ 'hol' if h.hol }}" title="{{ h.title }}">{{ h.num }}<small>{{ h.letter }}</small></th>{% endfor %}</tr></thead>
+    <tbody>
+    {% for grp in grid.groups %}
+      {% if grp.name %}<tr class="grp"><td colspan="{{ grid.ncols }}">{{ grp.name }}</td></tr>{% endif %}
+      {% for r in grp.rows %}<tr><td class="name" title="{{ r.emp.name }}">{{ r.emp.name }}<small>{{ r.emp.title }}</small></td>
+        {% for c in r.cells %}<td class="cell st-{{ c.status }} {{ 'err' if c.err }} {{ 'cov' if c.cov }}" id="c-{{ r.emp.id }}-{{ c.date }}"><a href="{{ here(menu=r.emp.id ~ '|' ~ c.date) }}#c-{{ r.emp.id }}-{{ c.date }}" title="{{ c.title }}">{{ c.text }}</a></td>{% endfor %}</tr>{% endfor %}
+    {% endfor %}
+    <tr class="grp"><td colspan="{{ grid.ncols }}">{{ grid.cov_title }}</td></tr>
+    {% for r in grid.cov_rows %}<tr><td class="name" title="{{ r.name }}">{{ r.name }}</td>{% for c in r.cells %}<td class="cov-cell {{ c.cls }}" title="{{ c.title }}">{{ c.text }}</td>{% endfor %}</tr>{% endfor %}
+    </tbody></table></div>
+  {% endif %}
+  <div class="legend">{% for k, v in STATUS.items() %}<span><i class="st-{{ k }}">{{ k }}</i>{{ v }}</span>{% endfor %}<span><i style="box-shadow:inset 0 0 0 2px var(--err)"></i>Involved in a coverage problem</span><span><b style="color:var(--brand)">+</b> Cross-covering another process</span></div>
+  </div>
+  <aside><div class="card"><h3>Issues in this view</h3>
+    {% if issues %}<div class="issues" style="max-height:60vh;overflow:auto">{% for i in issues %}{{ ui.card(i, next_url, here) }}{% endfor %}{% if issue_total > 12 %}<div class="muted small">+ {{ issue_total - 12 }} more – see the Issues tab.</div>{% endif %}</div>
+    {% else %}<div class="banner ok" style="margin:0">✓ No blocking issues or warnings here.</div>{% endif %}
+  </div></aside>
+</div>
+{% if menu %}
+<div class="overlay"><a class="backdrop" href="{{ here(menu=None) }}#c-{{ menu.e }}-{{ menu.d }}" aria-label="Close"></a>
+  <div class="menu center"><div class="hd">{{ menu.name }} · {{ menu.label }}</div>
+    {% for k, v in STATUS.items() %}<form method="post" action="/cell"><input type="hidden" name="next" value="{{ here(menu=None) }}"><input type="hidden" name="e" value="{{ menu.e }}"><input type="hidden" name="d" value="{{ menu.d }}"><input type="hidden" name="status" value="{{ k }}"><button type="submit"><i class="st-{{ k }}">{{ k }}</i>{{ v }}</button></form>{% endfor %}
+    {% if menu.has_leave %}<form method="post" action="/cell"><input type="hidden" name="next" value="{{ here(menu=None) }}"><input type="hidden" name="e" value="{{ menu.e }}"><input type="hidden" name="d" value="{{ menu.d }}"><input type="hidden" name="status" value="W"><input type="hidden" name="cancel_leave" value="1"><button type="submit"><i>✕</i>Cancel leave record &amp; mark working</button></form>{% endif %}
+    <a class="btn sm" style="margin:6px 4px 2px" href="{{ here(menu=None) }}#c-{{ menu.e }}-{{ menu.d }}">Close</a>
+  </div></div>
+{% endif %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card prose">
+  <h2>How the roster is built</h2>
+  <h3>Mandatory vs soft</h3>
+  <p><b>Mandatory</b> (shown as blocking issues): every process must have at least its minimum staff on every operating day; nobody may be rostered while on approved leave/comp-off; nobody may serve more brands in a day than their limit (double-booking). <b>Soft</b> (warnings/info): preferred weekly-off day, max {{ MAX_CONSEC }} consecutive working days, one weekly off per week. When they conflict, coverage always wins and the soft rule is reported.</p>
+  <h3>Operating calendars</h3>
+  <ul>{% for k, v in CALENDARS.items() %}<li><code>{{ k }}</code> – {{ v }}</li>{% endfor %}</ul>
+  <p>A brand's calendar is separate from an employee's schedule: a 365-day brand is open every day, but each person still gets weekly offs, so the generator must bridge the gap with other staff or backups.</p>
+  <h3>Assumptions</h3>
+  <ul>
+    <li>One employee can serve all processes of a brand on the same day. Load is counted in <i>distinct brands</i> per day (default limit 3).</li>
+    <li>Weekly rest is per Monday–Sunday week (1 off by default; configurable per process or person). Leave and comp-off days count as rest for that week; public holidays do not replace the weekly off.</li>
+    <li>Partial weeks at month boundaries shorter than 4 days get no quota and are ignored by the consecutive-days check.</li>
+    <li>On a public holiday, people with no operating process are marked <b>H</b>. Someone working a holiday earns a comp-off (shown in the employee view) – the app does not auto-schedule it.</li>
+    <li><b>Backups</b> are first choice for cross-cover; if none is free the engine ranks anyone else (same brand → same pod → lowest load). Cover shifts are explicit and visible (+ marker).</li>
+    <li>Holidays in the sample data are illustrative.</li>
+  </ul>
+  <h3>Engine in one paragraph</h3>
+  <p>1) Mark fixed unavailability (leave, comp-off, holidays). 2) For each week place weekly offs, most-constrained people first, choosing the day with the lowest cost (coverage deficit ≫ preference ≫ spread/consecutive days). 3) Repair pass moves offs away from gap days. 4) Fill what is still short with cross-cover. 5) Run the same validator used for manual edits and explain anything unresolved.</p>
+</div>
+{% endblock %}

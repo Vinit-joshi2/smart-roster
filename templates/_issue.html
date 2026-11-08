@@ -1,0 +1,16 @@
+{% macro card(i, next_url, here) %}
+<div class="issue {{ i.severity }}">
+  <div class="top"><span class="tag {{ i.severity }}">{{ 'Mandatory' if i.severity == 'error' else 'Soft' }} · {{ i.type_label }}</span>{% for c in i.cause_labels %}<span class="tag warning">{{ c }}</span>{% endfor %}{% if i.date_label %}<span class="muted small">{{ i.date_label }}</span>{% endif %}</div>
+  <div>{{ i.message }}</div>
+  <div class="row" style="margin-top:6px">
+    {% if i.gap %}{% if i.open %}<a class="btn sm" href="{{ here(open=None) }}">Hide fixes</a>{% else %}<a class="btn sm" href="{{ here(open=i.id) }}">Suggest fixes</a>{% endif %}{% endif %}
+    {% if i.brand_id %}<a class="btn sm" href="/roster?type=brand&id={{ i.brand_id }}">Show brand</a>{% elif i.employee_id %}<a class="btn sm" href="/roster?type=employee&id={{ i.employee_id }}">Show employee</a>{% endif %}
+    {% if i.cover_key %}<form class="inline" method="post" action="/cover/remove"><input type="hidden" name="next" value="{{ next_url }}"><input type="hidden" name="key" value="{{ i.cover_key }}"><input type="hidden" name="e" value="{{ i.employee_ids[0] }}"><button class="btn sm" type="submit">Remove cover</button></form>{% endif %}
+  </div>
+  {% if i.gap and i.open %}<div class="fixes">
+    {% for f in i.fixes %}<div class="fix"><div><b>{{ f.title }}</b><small>{{ f.reasons|join(' · ') }}</small></div>
+      <form method="post" action="/fix"><input type="hidden" name="next" value="{{ next_url }}"><input type="hidden" name="issue" value="{{ i.id }}"><input type="hidden" name="fix" value="{{ f.id }}"><button class="btn sm primary" type="submit">Apply</button></form></div>
+    {% else %}<div class="banner bad" style="margin:0">No eligible person is available: everyone who could help is on leave/off or already at their brand limit. Options: hire/assign another backup, relax the minimum, or reschedule the leave.</div>{% endfor %}
+  </div>{% endif %}
+</div>
+{% endmacro %}

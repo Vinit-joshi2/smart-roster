@@ -2,10 +2,9 @@
 
 A web app that **generates, validates and edits a monthly duty roster** for a multi-brand customer-operations team – and explains clearly when a roster cannot be fully valid, instead of silently producing a bad schedule.
 
-**Stack:** Python 3 · Flask (backend + routing) · Jinja templates with plain **HTML + CSS** (no JavaScript) · pytest. No database, no API keys.
+**Stack:** Python 3 · Flask (backend + routing) · Jinja templates with plain **HTML + CSS**  · pytest. No database, no API keys.
 
 - **Live app:** `<paste your deployed URL here>`
-- **Demo video:** `<paste video link here>`
 - **Approach note:** [APPROACH.md](APPROACH.md)
 
 Sample data: **36 employees · 4 pods · 25 brands (20 single-owner, 5 multi-staff) · 53 processes · 155 assignments · illustrative public holidays, leaves and comp-offs.**
@@ -17,7 +16,7 @@ Sample data: **36 employees · 4 pods · 25 brands (20 single-owner, 5 multi-sta
 Requires Python 3.10+.
 
 ```bash
-git clone <your-repo-url> && cd smart-roster
+git clone https://github.com/Vinit-joshi2/smart-roster && cd smart-roster
 python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements-dev.txt
 python -m pytest -q          # 19 tests (engine + web app)

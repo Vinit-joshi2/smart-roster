@@ -4,7 +4,8 @@ A web app that **generates, validates and edits a monthly duty roster** for a mu
 
 **Stack:** Python 3 · Flask (backend + routing) · Jinja templates with plain **HTML + CSS**  · pytest. No database, no API keys.
 
-- **Live app:** `<paste your deployed URL here>`
+- **Live app:** `https://smart-roster-0gg0.onrender.com/roster`
+- **Video:** `https://drive.google.com/file/d/1N6u8IQWvPfbzE5m8ex5lUDCXCOGLyt9i/view`
 - **Approach note:** [APPROACH.md](APPROACH.md)
 
 Sample data: **36 employees · 4 pods · 25 brands (20 single-owner, 5 multi-staff) · 53 processes · 155 assignments · illustrative public holidays, leaves and comp-offs.**

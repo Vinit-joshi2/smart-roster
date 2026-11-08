@@ -139,5 +139,3 @@ tests/                 test_engine.py (11) + test_app.py (8)
 demo/record_demo.py    optional: re-records the captioned demo video
 ```
 
-## AI usage
-Built with Claude (Claude Code) as a pair-programmer: it drafted the engine and UI, while the rules, assumptions and trade-offs above were reviewed against the brief and verified with the test suite and manual runs.
